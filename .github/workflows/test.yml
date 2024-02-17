@@ -1,0 +1,59 @@
+name: test
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+
+jobs:
+  lint-python:
+    runs-on: ubuntu-latest
+    steps:
+      - name: clone the repository
+        uses: actions/checkout@v4
+
+      - name: setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: install development dependencies
+        run: pip install --requirement dev.requirements.txt
+
+      - name: check formatting
+        run: black --check src tests
+
+      - name: check import sorting
+        run: isort --check-only --diff src tests
+
+  lint-terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: clone the repository
+        uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: check formatting
+        run: terraform fmt -check
+        working-directory: terraform
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: clone the repository
+        uses: actions/checkout@v4
+
+      - name: setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: install development dependencies
+        run: pip install
+          --requirement dev.requirements.txt
+          --requirement tests/requirements.txt

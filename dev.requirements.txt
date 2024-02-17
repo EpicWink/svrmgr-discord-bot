@@ -1,0 +1,11 @@
+# Dev tools
+black ~= 24.0
+isort ~= 5.0
+pip-tools ~= 7.0
+
+# For message creation
+requests ~= 2.0
+
+# Pre-installed in AWS Lambda runtime
+boto3 ~= 1.0
+botocore ~= 1.0

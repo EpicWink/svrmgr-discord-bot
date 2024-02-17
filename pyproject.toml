@@ -1,0 +1,10 @@
+[tool.isort]
+line_length = 88
+
+[tool.pip-tools]
+annotate = true
+generate-hashes = true
+newline = "LF"
+output-file = "app.requirements.txt"
+reuse-hashes = true
+upgrade = true
