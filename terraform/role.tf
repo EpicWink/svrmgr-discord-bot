@@ -21,7 +21,7 @@ data "aws_iam_policy_document" "svrmgr_manage_ec2" {
   statement {
     actions = [
       "ec2:DescribeTags",
-      "ec2:DescribeInstanceStatus",
+      "ec2:DescribeInstances",
     ]
     resources = ["*"]
 

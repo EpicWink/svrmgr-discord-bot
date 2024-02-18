@@ -167,6 +167,11 @@ class Instance:
     id: str
     tags: t.Dict[str, str]
     state: InstanceState | None = None
+    host: str | None = None
+
+    @property
+    def name(self) -> str:
+        return self.tags.get("Name") or self.id
 
 
 def _iter_ec2_response_pages(
@@ -230,31 +235,34 @@ def list_instances() -> t.List[Instance]:
     ]
 
 
-def get_instances_state(instances: t.List[Instance]) -> None:
-    """Get EC2 instances' running states.
+def detail_instances(instances: t.List[Instance]) -> None:
+    """Get EC2 instances' running states and public hostname.
 
     Args:
         instances: details of EC2 instances to get running states for,
             modified in-place
     """
 
-    # Get instance statuses
-    describe_instance_status = functools.partial(
-        ec2_client.describe_instance_status,
+    # Detail instances
+    describe_instances = functools.partial(
+        ec2_client.describe_instances,
         InstanceIds=[i.id for i in instances],
-        IncludeAllInstances=True,
     )
 
     logger.info(f"Listing status of {len(instances)} EC2 instances")
-    instance_statuses = _iter_ec2_response_pages(
-        describe_instance_status, items_key="InstanceStatuses"
+    reservations = _iter_ec2_response_pages(
+        describe_instances, items_key="Reservations"
     )
-    instance_statuses_by_instance_id = {i["InstanceId"]: i for i in instance_statuses}
+    instances_api_by_id = {
+        i["InstanceId"]: i for r in reservations for i in (r.get("Instances"))
+    }
 
-    # Update with instance stae
+    # Update with instance state and
     for instance in instances:
-        instance.state = InstanceState(
-            instance_statuses_by_instance_id[instance.id]["InstanceState"]["Name"],
+        instance_api = instances_api_by_id[instance.id]
+        instance.state = InstanceState(instance_api["State"]["Name"])
+        instance.host = instance_api.get("PublicDnsName") or instance_api.get(
+            "PublicIpAddress"
         )
 
 
@@ -422,9 +430,17 @@ def handle_request(request: HTTPRequest) -> HTTPResponse:
     instances = [i for i in instances if i.tags.get(TAG_KEY) == message_id]
     instances = sorted(instances, key=lambda x: x.tags.get("Name") or x.id)
 
-    get_instances_state(instances)
+    detail_instances(instances)
 
     # Build message
+    content_lines = ["Servers"]
+
+    for instance in instances:
+        if instance.host:
+            content_lines.append(f"{instance.name}: `{instance.host}`")
+
+    content = "\n".join(content_lines)
+
     server_components = [
         {"type": 1, "components": [
             {"type": 2, "label": "\u21bb", "style": 2, "custom_id": "refresh"},
@@ -432,7 +448,7 @@ def handle_request(request: HTTPRequest) -> HTTPResponse:
     ]  # fmt: skip
 
     for instance in instances:
-        name = instance.tags.get("Name") or instance.id
+        name = instance.name
         if instance.state == InstanceState.stopped:
             style = 3
             custom_id = f"start:{instance.id}"
@@ -455,7 +471,7 @@ def handle_request(request: HTTPRequest) -> HTTPResponse:
     # Return message-update eresponse
     response_data = {
         "type": 7,  # UPDATE_MESSAGE
-        "data": {"content": "Servers", "components": server_components},
+        "data": {"content": content, "components": server_components},
     }
 
     return HTTPResponse.from_json_body_data(status_code=200, data=response_data)
