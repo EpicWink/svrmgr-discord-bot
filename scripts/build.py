@@ -8,6 +8,9 @@ import sys
 root_dir = pathlib.Path(__file__).parent.parent
 
 build_dir = root_dir / "build"
+if build_dir.is_dir():
+    print(f"Removing previous build directory: {build_dir}", file=sys.stderr)
+    shutil.rmtree(build_dir)
 print(f"Creating build directory: {build_dir}", file=sys.stderr)
 build_dir.mkdir(exist_ok=False)
 
