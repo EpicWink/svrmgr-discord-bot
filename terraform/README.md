@@ -1,5 +1,10 @@
 # Server manager infrastructure Terraform configuration
 
+Creates infrastructure needed to start/stop EC2 instances and update Discord messages,
+including a serverless function and necessary IAM identities and permissions.
+
+You should only ever have to deploy this once.
+
 ## Usage
 
 ### Setup

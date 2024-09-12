@@ -12,10 +12,10 @@ AWS Lambda function which can manage EC2 instances, invoked from Discord integra
    with bot:send-messages permission. Also add it to your channel if the channel is
    private.
 
-2. Create message (see below).
-
 3. Run Terraform (see [Terraform README](./terraform/README.md)). Enter the output
    function URL into the Discord app's integration URL.
+
+3. Create message (see below).
 
 3. Update servers (see below).
 
@@ -36,6 +36,8 @@ Environment variables:
 
 - `SVRMGR_DISCORD_CHANNEL_ID`: Discord channel ID (get by enabling dev-mode in Discord,
   then right-click on channel and select "Copy Channel ID").
+
+You can create as many messages as you want (each message managing different servers).
 
 #### Update servers
 
