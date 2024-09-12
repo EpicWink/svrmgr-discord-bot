@@ -2,6 +2,11 @@
 
 Reads a spec-nonconformant (assumes raw strings) .env file (in the
 current directory) to load environment variables.
+
+Environment variables:
+- SVRMGR_DISCORD_API_URL (optional): Discord API base URL
+- SVRMGR_DISCORD_CHANNEL_ID: Discord channel ID
+- SVRMGR_DISCORD_BOT_TOKEN: Discord bot token
 """
 
 import os
@@ -9,6 +14,10 @@ import pathlib
 import sys
 
 import requests
+
+if sys.argv[1:]:
+    print("Script takes no command-line arguments", file=sys.stderr)
+    sys.exit(1)
 
 # Read .env
 env_path = pathlib.Path(".env")
