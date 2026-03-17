@@ -1,4 +1,8 @@
-# Server manager development
+# Contributing to server manager
+
+Thanks for wanting to contribute.
+
+## Development setup
 
 Install [Python](https://www.python.org/).
 
